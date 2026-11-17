@@ -7,6 +7,9 @@ from routers.members import members_router
 from routers.loans import loans_router
 
 app = Flask(__name__)
+@app.route("/")
+def home():
+    return {"message": "Library API is running"}
 app.register_blueprint(books_router)
 app.register_blueprint(members_router)
 app.register_blueprint(loans_router)
