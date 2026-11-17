@@ -6,7 +6,7 @@ from unittest import result
 
 from flask import Flask, jsonify, request, Blueprint
 from helpers.utils import check, money, notify
-bp = Blueprint('books', __name__)
+bp = Blueprint('loans', __name__)
 CURRENT_MEMBER = None
 @bp.route("/loans", methods=["GET"])
 def list_loans():

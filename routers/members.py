@@ -4,7 +4,7 @@ from unittest import result
 
 from flask import Flask, app, jsonify, request, Blueprint
 from helpers.utils import check, money, notify
-bp = Blueprint('books', __name__)
+bp = Blueprint('members', __name__)
 CURRENT_MEMBER = None
 
 @bp.route("/members", methods=["GET"])
