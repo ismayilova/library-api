@@ -99,3 +99,30 @@ Your instructor will give you a new requirement. Implement it in your refactored
 - Late returns cost $0.50 per day.
 - Students can have 3 open loans, and staff can have 5.
 - Members who owe money can't check out books.
+
+## Refactored code layout
+
+The API is split into smaller files so it is easier to follow:
+
+- `routers/` has the Flask routes for books, members, and loans (including reports).
+- `services/` handles the rules for each resource.
+- `repositories/` has the database queries.
+- `utils/validation.py` checks inputs, `utils/checks.py` checks borrowing rules, and `utils/fines.py` calculates fines.
+- `errors.py` has `error(message, status_code)` for API errors.
+- `notifications.py` is a mock email sender. It writes to `outbox.txt` instead of sending an email.
+- `database.py` sets up the SQLite database.
+
+To run the project:
+
+```bash
+pip install -r requirements.txt
+python app.py
+```
+
+To run the original tests:
+
+```bash
+python -m unittest test_api.py
+```
+
+The API routes and JSON output are kept the same as before.
