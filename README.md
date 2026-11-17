@@ -55,22 +55,41 @@ Your instructor will give you a new requirement. Implement it in your refactored
 3. **Keep `library.db` and `outbox.txt` as relative paths**, so they are created in the folder the API runs from. `outbox.txt` stands in for a real mail server.
 4. **Keep the API's behavior the same:** the same URLs, status codes and JSON.
 
+## Diagnose: problems in the original `app.py`
+
+| Problem in the original code | Type | Why it was a problem |
+|---|---|---|
+| Database queries were written inside the route functions | Coupling | If the database changed, I would have to change many routes. |
+| Book, member and loan routes were all in one file | Cohesion | Finding and changing one feature was harder. |
+| The $0.50 daily fine rate appeared in several functions | Coupling | Changing the fine rate meant updating multiple places. |
+| Validation and borrowing checks were mixed into the routes | Cohesion | It was harder to reuse or test those rules separately. |
+| Notification messages and file writing were inside loan routes | Coupling | Changing how notifications work would also mean changing the API routes. |
+| Database setup and API endpoints were in the same file | Cohesion | The file had too many different jobs. |
+
 ## Measure your work
 
 | Measure | Before | After |
 |---|---|---|
-| Tests passing | | |
-| Lines in the largest file | | |
-| Places where the fine rate appears | | |
-| Route handlers containing SQL | | |
-| Places edited for the change request | n/a | |
-| Can the fine rule be tested without HTTP or a database? | | |
+| Tests passing | 53 (original test suite) | 53 (checked locally after the fix) |
+| Lines in the largest file | 555 (`app.py`) | 317 (`test_api.py`, unchanged); largest application file: 120 (`services/loans.py`) |
+| Places where the fine rate appears | 7 | 1 (`utils/fines.py`) |
+| Route handlers containing SQL | 16 | 0 |
+| Places edited for the change request | n/a | Not measured; no separate instructor change request was provided |
+| Can the fine rule be tested without HTTP or a database? | No, it was mixed with the API logic | Yes, by calling `fine_for()` from `utils/fines.py` |
 
 ## Questions to answer
 
-1. Which module is the most cohesive? Describe its one job in a sentence.
-2. Which dependency did you remove, and what can now change independently because of that?
-3. What coupling remains, and why did you accept it?
+**1. Which module is the most cohesive? Describe its one job in a sentence.**
+
+I think `utils/fines.py` is the most cohesive because its job is to calculate fines and amounts owed. It does not handle HTTP requests or database queries.
+
+**2. Which dependency did you remove, and what can now change independently because of that?**
+
+I removed SQL queries from the route handlers. Now the database code is in the repositories, so I can change a query without editing the Flask routes. I also moved notifications into their own file, so the notification code can change separately.
+
+**3. What coupling remains, and why did you accept it?**
+
+The services still use the repositories and some utility functions, and the routers still use the services. I kept these connections because the layers need to work together, but each file has a clearer job now.
 
 ## API reference
 
