@@ -99,3 +99,26 @@ Your instructor will give you a new requirement. Implement it in your refactored
 - Late returns cost $0.50 per day.
 - Students can have 3 open loans, and staff can have 5.
 - Members who owe money can't check out books.
+
+## Code layout
+
+`app.py` only creates the app and registers the blueprints. Each layer only calls the one below it:
+
+```text
+routes/        reads the request, returns JSON (Flask blueprints)
+  ↓
+services/      applies the library rules, raises LibraryError
+  ↓
+repositories/  runs the SQL, returns models
+  ↓
+core/db.py     opens the database
+```
+
+| Domain | Routes | Service | Repository | Model |
+|---|---|---|---|---|
+| Books | `book_routes.py` | `book_service.py` | `book_repository.py` | `models/book.py` |
+| Members | `member_routes.py` | `member_service.py` | `member_repository.py` | `models/member.py` |
+| Loans | `loan_routes.py` | `loan_service.py` | `loan_repository.py` | `models/loan.py` |
+| Reports | `report_routes.py` | `report_service.py` | `report_repository.py` | none |
+
+Shared code lives in `core/`: `db.py` (connection and seed data), `errors.py`, `validation.py`, `fines.py` (the fine rate) and `notifications.py` (writes to `outbox.txt`).

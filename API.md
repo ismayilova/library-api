@@ -229,6 +229,24 @@ curl -X POST http://localhost:8000/members -H "Content-Type: application/json" -
 | 400 | `type must be student or staff` | The type is anything else. |
 | 409 | `email already registered` | Another member has that email. |
 
+### Delete a member
+
+```text
+DELETE /members/<id>
+```
+
+```bash
+curl -X DELETE http://localhost:8000/members/4
+```
+
+**Response: 204**, with an empty body. The member's past (returned and paid) loans are deleted with them.
+
+| Error | Message | When |
+|---|---|---|
+| 404 | `member not found` | The member doesn't exist. |
+| 409 | `member has books on loan` | The member still has a book checked out. |
+| 409 | `member owes money` | The member has an unpaid fine. |
+
 ### Get a member's loans
 
 ```text

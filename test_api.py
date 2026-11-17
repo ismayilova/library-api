@@ -142,6 +142,30 @@ class MemberTests(ApiTestCase):
     def test_missing_member_loans(self):
         self.assertEqual(self.client.get("/members/999/loans").status_code, 404)
 
+    def test_delete_member(self):
+        self.assertEqual(self.client.delete("/members/1").status_code, 204)
+        self.assertEqual(self.client.get("/members/1").status_code, 404)
+
+    def test_delete_missing_member(self):
+        self.assertEqual(self.client.delete("/members/999").status_code, 404)
+
+    def test_cannot_delete_member_with_open_loan(self):
+        response = self.client.delete("/members/3")
+        self.assertEqual(response.status_code, 409)
+        self.assertEqual(response.get_json()["error"], "member has books on loan")
+
+    def test_cannot_delete_member_who_owes_money(self):
+        self.client.post("/loans/1/return")
+        response = self.client.delete("/members/3")
+        self.assertEqual(response.status_code, 409)
+        self.assertEqual(response.get_json()["error"], "member owes money")
+
+    def test_delete_member_removes_their_paid_loans(self):
+        self.client.post("/loans/1/return")
+        self.client.post("/loans/1/pay-fine")
+        self.assertEqual(self.client.delete("/members/3").status_code, 204)
+        self.assertEqual(self.client.get("/loans/1").status_code, 404)
+
 
 class CheckoutTests(ApiTestCase):
     def test_checkout_sets_due_date_and_marks_book_unavailable(self):
