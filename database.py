@@ -1,4 +1,5 @@
 import sqlite3
+from contextlib import contextmanager
 from datetime import date, timedelta
 
 
@@ -48,7 +49,14 @@ def init_db():
     conn.commit()
     conn.close()
 
-
-
+@contextmanager
 def connect():
-    return sqlite3.connect("library.db")
+    db = sqlite3.connect("library.db")
+    try:
+        yield db
+        db.commit()
+    except:
+        db.rollback()
+        raise
+    finally:
+        db.close()
