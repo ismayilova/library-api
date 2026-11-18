@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 
-import fines
-import member_service
+from utils import fines
+from services import member_service
 
 bp = Blueprint("members", __name__)
 

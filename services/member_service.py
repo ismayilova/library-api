@@ -1,8 +1,6 @@
-import loan_repository
-import loan_service
-import member_repository
-import validation
 from errors import bad_request, conflict, not_found
+from repositories import loan_repository, member_repository
+from utils import checks, fines, validation
 
 
 def list_members():
@@ -34,6 +32,6 @@ def member_account(member_id):
     loans = loan_repository.list_loans_for_member(member_id)
     return {
         "loans": loans,
-        "total_owed": loan_service.total_owed(loans),
-        "loans_remaining": loan_service.loans_remaining(member, loans),
+        "total_owed": fines.total_owed(loans),
+        "loans_remaining": checks.loans_remaining(member, loans),
     }

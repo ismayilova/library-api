@@ -1,8 +1,5 @@
-import book_repository
-import fines
-import loan_repository
-import loan_service
-import report_repository
+from repositories import book_repository, loan_repository, report_repository
+from utils import checks, fines
 
 
 def overdue_report():
@@ -29,6 +26,6 @@ def summary_report():
     loans = loan_repository.list_loans()
     return {
         "total_books": book_repository.count_books(),
-        "on_loan": loan_service.count_open_loans(loans),
-        "fines_outstanding": fines.money(loan_service.total_owed(loans)),
+        "on_loan": checks.count_open_loans(loans),
+        "fines_outstanding": fines.money(fines.total_owed(loans)),
     }

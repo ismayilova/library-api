@@ -1,6 +1,6 @@
-import book_repository
-import validation
 from errors import bad_request, conflict, not_found
+from repositories import book_repository
+from utils import checks, validation
 
 
 def list_books(only_available):
@@ -24,6 +24,6 @@ def create_book(data):
 
 def delete_book(book_id):
     book = get_book(book_id)
-    if book["available"] == 0:
+    if not checks.is_available(book):
         raise conflict("book is on loan")
     book_repository.delete_book(book_id)

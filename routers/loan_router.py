@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 
-import fines
-import loan_service
+from utils import fines
+from services import loan_service
 
 bp = Blueprint("loans", __name__)
 
@@ -22,7 +22,7 @@ def loan_json(loan):
 
 def loan_with_current_fine_json(loan):
     result = loan_json(loan)
-    result["current_fine"] = fines.money(loan_service.current_fine(loan))
+    result["current_fine"] = fines.money(fines.current_fine(loan))
     return result
 
 

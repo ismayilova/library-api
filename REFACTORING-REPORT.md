@@ -23,7 +23,7 @@ Line numbers in the diagnosis refer to the **original** `app.py` (555 lines, com
 The code now has the layers from `refactoring-steps.md`, and each layer only calls the one below it:
 
 ```text
-Route        reads the request, returns JSON          book_routes.py  member_routes.py  loan_routes.py  report_routes.py
+Router       reads the request, returns JSON          routers/book_router.py, member_router.py, loan_router.py, report_router.py
   ↓
 Service      applies the library's rules              book_service.py member_service.py loan_service.py  report_service.py
   ↓
@@ -32,7 +32,7 @@ Repository   runs the SQL                             book_repository.py member_
 Database     db.py (connect, init_db)
 ```
 
-Shared helpers, each with one job: `errors.py` (`LibraryError` and the 400/404/409 helpers), `validation.py`, `fines.py` (the fine rule and `money`), `notifications.py` (`send_email`). `app.py` only creates the Flask app, registers the four blueprints, installs the error handler and creates the database on first start.
+The Service, Repository and Router layers each have one file per resource (`book_*`, `member_*`, `loan_*`) plus `report_*` for the report endpoints. Shared helpers, each with one job: `errors.py` (`api_error(message, status_code)`, the 400/404/409 shortcuts and the Flask error handler), `utils/validation.py` (is the input valid?), `utils/checks.py` (yes/no questions such as `is_overdue` or `has_reached_loan_limit`), `utils/fines.py` (the fine rule and `money`), and `notifications.py`. Notifications are mocked: `MockEmailSender` records every message in memory and appends it to `outbox.txt`, and `set_sender()` swaps in a real sender later. `app.py` only creates the Flask app, registers the four blueprints, installs the error handler and creates the database on first start.
 
 What went where:
 
@@ -43,7 +43,7 @@ What went where:
 
 ### Checks
 
-- `python -m unittest`: **53 tests, OK**, both before and after. `test_api.py` was not changed.
+- `python -m unittest`: **63 tests, OK** (the original 53, unchanged, plus 10 new ones in `test_units.py` for fines, checks, validation, the error helper and the mock notifier).
 - I also ran the original `app.py` and the new code through the same 74 requests (all the endpoints plus edge cases like missing request bodies, invalid fields, unknown routes, wrong methods, overdue renewals and the fine flow). Every status code, JSON body and `outbox.txt` line was **identical**.
 
 ## Measure your work
@@ -51,21 +51,21 @@ What went where:
 | Measure | Before | After |
 |---|---|---|
 | Tests passing | 53 / 53 | 53 / 53 |
-| Files with code (not counting tests) | 1 | 18 |
-| Lines in the largest file | 555 (`app.py`) | 163 (`loan_service.py`); `app.py` is 25 |
+| Files with code (not counting tests) | 1 | 19 |
+| Lines in the largest file | 555 (`app.py`) | 104 (`services/loan_service.py`); `app.py` is 17 |
 | Places that open the database | 17 | 1 (`db.py`) |
-| Places where the fine rate appears | 7 | 1 (`fines.py`) |
+| Places where the fine rate appears | 7 | 1 (`utils/fines.py`) |
 | Route handlers containing SQL | 16 | 0 |
 | Places edited for the change request | n/a | *Not done: no requirement was provided (see below)* |
 | Can the fine rule be tested without HTTP or a database? | No | Yes: `fines.fine_for("2026-01-01")` and `loan_service.amount_owed(loan)` take plain values |
 
-For a feel of the new structure (these are examples, **not** your instructor's change request), changing the fine rate means editing 1 place (`FINE_PER_DAY` in `fines.py`), changing the loan period 1 place (`LOAN_DAYS`), and changing the email wording 1 place (the call in `loan_service.py`).
+For a feel of the new structure (these are examples, **not** your instructor's change request), changing the fine rate means editing 1 place (`FINE_PER_DAY` in `utils/fines.py`), changing the loan period 1 place (`LOAN_DAYS`), and changing the email wording 1 place (the call in `loan_service.py`).
 
 ## Questions to answer
 
 **1. Which module is the most cohesive? Describe its one job in a sentence.**
 
-`fines.py`: it knows how late a loan is and what that lateness costs, and it formats money. Everything in it is about the fine rule, and nothing in it knows about HTTP, SQL or email. (`notifications.py` and `validation.py` are similarly focused.)
+`utils/fines.py`: it knows how late a loan is and what that lateness costs, and it formats money. Everything in it is about the fine rule, and nothing in it knows about HTTP, SQL or email. (`notifications.py` and `utils/validation.py` are similarly focused.)
 
 **2. Which dependency did you remove, and what can now change independently because of that?**
 
